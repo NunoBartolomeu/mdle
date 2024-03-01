@@ -1,0 +1,110 @@
+2.a)
+    Numeric (numeric) - Represents real numbers (decimal values).
+    Integer (integer) - Represents whole numbers.
+    Complex (complex) - Represents complex numbers.
+    Logical (logical) - Represents boolean values, TRUE or FALSE.
+    Character (character) - Represents text strings.
+    
+2.b.i) 
+    var1 <- 3 # Allocate the number 3 to the variable var1, var1 stores 3
+    show(var1) # Print var1 to the console, it shows 3
+    var2 <- var1 * var1 # Allocate the square of var1 to var2, var2 stores 9
+    var3 <- var1 ** 2 # Allocate the square of var1 to var3, var3 stores 9
+    var4 <- var1 ^ 2 # Allocate the square of var1 to var4, var4 stores 9
+    var1 <- var1 # Assign var1 to itself, var1 stores 3
+    var3 != var4 # Check if var3 is not equal to var4, shows FALSE
+    var2 == var4 # Check if var2 is equal to var4, shows TRUE
+    var2 <- var2 - var2 # Subtract var2 from itself and assign the result to var2, var2 stores 0
+    var5 <- var3 / var2 # Divide var3 by var2 and assign the result to var5, var5 stores Inf (infinite)
+    var5 + 1 # Add 1 to var5, var5 stores Inf
+
+2.b.ii)
+    a <− c(1,2,5.3,6,−2,4,3.14159265359) # Allocates the list of values to a, a stores num [1:7] 1 2 5.3 6 -2...
+    a # Prints a values to the console, it shows 1.000000  2.000000  5.300000  6.000000 -2.000000  4.000000  3.141593
+    b<− c(”1”,”2”,”3”) # Allocates the list of values to b, b stores char [1:3] "1" "2" "3"
+    ”2” %in% b # Checks if "2" is in b, shows TRUE
+    ”5” %in% b # Checks if "5" is in b, shows FALSE
+    c <- c(TRUE,TRUE,FALSE,TRUE) # Allocates the list of values to c, c stores logi [1:4] TRUE TRUE FALSE TRUE
+    a<− c # Replicates the values of c in a, a stores logi [1:4] TRUE TRUE FALSE TRUE
+    a[0] # Shows the value of a at the position 0, shows logical(0), because R starts indexing lists at the position 1
+    a[1] # Shows the value of a at the position 1, shows TRUE
+    a[−1] # Shows all values of a except the first one, shows TRUE FALSE TRUE
+    a[8] # Shows the value of a at the position 8, shows NA (not available)
+    a[c(1,3)] # Shows the values of the position 1 and 3 of a, shows TRUE FALSE
+    a[c(3,1)] # Shows the values of the position 3 and 1 of a, shows FALSE TRUE
+    a[a > 2] # Shows all values in a that are bigger than 2, shows logical(0)
+
+2.b.iii)
+    m <- matrix(1:6, nrow=3,ncol=2) # Allocates the matrix to m, m stores int[1:3, 1:2] 1, 2, 3, 4, 5, 6
+    show(m) # Shows the values of m, shows:
+            [,1] [,2]
+        [1,]    1    4
+        [2,]    2    5
+        [3,]    3    6
+    n <- matrix(2:7, nrow=2,ncol=3) # Allocates the matrix to n, n stores int[1:2, 1:3] 2, 3, 4, 5, 6, 7
+    n # Shows the values of m, shows:
+            [,1] [,2] [,3]
+        [1,]    2    4    6
+        [2,]    3    5    7
+    m[,2] # shows the second column of m, shows 4 5 6
+    n[1,] # shows the first line of n, shows 2 4 6
+    m[2:3,1:2] # shows the subdivision of m that only contains the lines from 2 to 3 and the columns from 1 to 2, shows:
+            [,1] [,2]
+        [1,]    2    5
+        [2,]    3    6
+    n%*%m # Shows the matrixical multiplication of n and m,, shows:
+            [,1] [,2]
+        [1,]   28   64
+        [2,]   34   79
+    m%*%n # Shows the matrixical multiplication of m and n, shows:
+            [,1] [,2] [,3]
+        [1,]   14   24   34
+        [2,]   19   33   47
+        [3,]   24   42   60
+    n%*%n # , shows Error in n %*% n : non-conformable arguments
+    n^2 # Shows the matrix n with all its values squared, shows:
+            [,1] [,2] [,3]
+        [1,]    4   16   36
+        [2,]    9   25   49
+    sqrt(n) # Shows the square root of the matrix n, shows:
+            [,1]     [,2]     [,3]
+        [1,] 1.414214 2.000000 2.449490
+        [2,] 1.732051 2.236068 2.645751
+
+2.b.v)
+    colour <- c(rep("red",20) , rep("blue", 30)) # Creates the list colour with 20 instances of red and 30 of blue
+    colour <− factor(colour) # Replaces the list colour with the factor of colour, in this case is a factor with 2 levels, "blue" and "red"
+    summary(colour) # Shows how many instances are in each level, shows:
+        blue  red 
+        30   20 
+    dimensions<−c("large", "medium", "small") # Creates the list dimensions with the respective values
+    show(dimensions) # Shows "large"  "medium" "small" 
+    dimensions<- ordered(dimensions) # Creates a factor with 3 levels from dimensions that contains an order
+    show(dimensions) # shows said order: Levels: large < medium < small
+
+2.b.vii)
+    library(), opens the available libraries
+    search(), shows the packages:        
+        [1] ".GlobalEnv"        "tools:rstudio"    
+        [3] "package:stats"     "package:graphics" 
+        [5] "package:grDevices" "package:utils"    
+        [7] "package:datasets"  "package:methods"  
+        [9] "Autoloads"         "package:base"  
+    library("MASS"), adds the package MASS to the library
+    . libPaths(), shows the path to the library of the machine
+    install.packages("e1071"), installs the package e1071
+    install.packages("funModeling"), installs the package funModeling, doesn't work because of version compatibility
+    x<−c(”MASS”,”dplyr”, ”e1071”), set the list of package names x
+    lapply(x, require , character.only = TRUE), apply to all package names the require function, result package MASS and e1071 are set as true because they were found, package dplyr is false because it wasn't found 
+    require(funModeling), make funModeling required, doesn't work because the package was not found
+
+2.b.viii)
+    iris # Shows the matrix iris
+    summary(iris) # Shows the minimum, maximum and median value and the 1st, 2nd and 3rd quartiles for each feature 
+    fivenum(iris$Sepal.Length) # shows the min, 1st Qu, Median, 3rd Qu and max values for the Sepal-Length feature
+    status(iris) # Belongs to the funModeling library, so it doesn't run
+
+2.c)
+    The EX.1 increments x 10 times with the values (0 1 2 3 4 5 6 7 8 9 10) to a total of 55
+    The EX.2 we can see that rep(0, 10) creates a list with exactly 10 instances of 0, and because of the print the system prints 0 10 times
+    The EX.3 we start with a list with all the numbers from 1 to 9 and on every iteration we remove the first one, then we print the list. The last part checks if 6 belongs to v and if it doesn't the loop is broken 

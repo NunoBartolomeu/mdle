@@ -12,10 +12,6 @@ library(dplyr)
 pima <- read.csv("C:/Users/pedro/Desktop/Mestrado/MDLE/lab/lab02/pima.csv")
 lisbon <- read.csv("C:/Users/pedro/Desktop/Mestrado/MDLE/lab/lab02/Lisbon_ 2023-01-01_2023-01-31.csv")
 
-# Check the structure of the datasets
-str(pima)
-str(lisbon)
-
 # Encode categorical variables
 pima_encoded <- pima %>%
   mutate(across(where(is.character), as.factor)) %>%
@@ -30,7 +26,7 @@ lisbon_encoded <- lisbon_encoded[, -which(sapply(lisbon_encoded, function(x) len
 
 # Perform PCA
 pima_pca <- prcomp(pima_encoded[, -ncol(pima_encoded)], center = TRUE, scale. = TRUE)
-lisbon_pca <- prcomp(lisbon_encoded[, -c(1, 2, 9, 17, 18)], center = TRUE, scale. = TRUE)
+lisbon_pca <- prcomp(lisbon_encoded[, -c(1, 2, 22, 23, 24)], center = TRUE, scale. = TRUE)
 
 # Compute eigenvalues
 pima_eigenvalues <- (pima_pca$sdev)^2
@@ -44,25 +40,23 @@ lisbon_eigenvalues <- sort(lisbon_eigenvalues, decreasing = TRUE)
 plot(pima_eigenvalues, type = "b", xlab = "Principal Component", ylab = "Eigenvalue", main = "Eigenvalues - Pima Dataset")
 plot(lisbon_eigenvalues, type = "b", xlab = "Principal Component", ylab = "Eigenvalue", main = "Eigenvalues - Lisbon Dataset")
 
-# Determine the adequate number of reduced dimensions (m)
-# For example, you can look for the point where the eigenvalues drop off substantially
+# Determine the cumulative proportion of variance explained by each component
+cumulative_variance_pima <- cumsum(pima_pca$sdev^2 / sum(pima_pca$sdev^2))
+cumulative_variance_lisbon <- cumsum(lisbon_pca$sdev^2 / sum(lisbon_pca$sdev^2))
 
-# Kaiser criterion: Retain components with eigenvalues > 1
-pima_m <- sum(pima_eigenvalues > 1)
-lisbon_m <- sum(lisbon_eigenvalues > 1)
+# Find the number of components that explain at least 90% of the variance
+k_pima <- which(cumulative_variance_pima >= 0.9)[1]
+k_lisbon <- which(cumulative_variance_lisbon >= 0.9)[1]
 
-# Print the adequate number of reduced dimensions
-cat("Adequate number of reduced dimensions for Pima dataset:", pima_m, "\n")
-cat("Adequate number of reduced dimensions for Lisbon dataset:", lisbon_m, "\n")
+# Retain the selected number of components
+selected_pcs_pima <- pima_pca$x[, 1:k_pima]
+selected_pcs_lisbon <- lisbon_pca$x[, 1:k_lisbon]
+
+# Show selected components in terminal
+ncol(selected_pcs_pima)
+ncol(selected_pcs_lisbon)
 
 
-# Dimensionality reduction using PCA results
-pima_reduced_pca <- predict(pima_pca, newdata = pima_encoded)[, 1:pima_m]
-lisbon_reduced_pca <- predict(lisbon_pca, newdata = lisbon_encoded)[, 1:lisbon_m]
-
-# Print number of features of reduced datasets
-cat("Number of features in reduced Pima dataset (PCA):", ncol(pima_reduced_pca), "\n")
-cat("Number of features in reduced Lisbon dataset (PCA):", ncol(lisbon_reduced_pca), "\n")
 
 ##############################################################################################
 
@@ -96,7 +90,7 @@ lisbon_encoded <- handle_missing_infinite(lisbon_encoded)
 pima_svd <- svd(scale(pima_encoded[, -ncol(pima_encoded)]))
 
 # Compute SVD for Lisbon dataset
-lisbon_svd <- svd(scale(lisbon_encoded[, -c(1, 2, 9, 17, 18)]))
+lisbon_svd <- svd(scale(lisbon_encoded[, -c(1, 2, 22, 23, 24)]))
 
 # Plot singular values for Pima dataset
 plot(pima_svd$d, type = "b", xlab = "Singular Value", ylab = "Value", main = "Singular Values - Pima Dataset")
@@ -104,20 +98,20 @@ plot(pima_svd$d, type = "b", xlab = "Singular Value", ylab = "Value", main = "Si
 # Plot singular values for Lisbon dataset
 plot(lisbon_svd$d, type = "b", xlab = "Singular Value", ylab = "Value", main = "Singular Values - Lisbon Dataset")
 
-# Determine the adequate number of reduced dimensions (m)
-# For example, you can look for the point where the singular values drop off substantially
 
-# Kaiser criterion: Retain components with singular values > 1
-pima_m <- sum(pima_svd$d > 1)
-lisbon_m <- sum(lisbon_svd$d > 1)
+# Determine a proporção acumulada da variância explicada por cada componente
+cumulative_variance_svd_pima <- cumsum(pima_svd$d^2 / sum(pima_svd$d^2))
+cumulative_variance_svd_lisbon <- cumsum(lisbon_svd$d^2 / sum(lisbon_svd$d^2))
 
-# Print the adequate number of reduced dimensions
-cat("Adequate number of reduced dimensions for Pima dataset:", pima_m, "\n")
-cat("Adequate number of reduced dimensions for Lisbon dataset:", lisbon_m, "\n")
+# Encontre o número de componentes que explicam pelo menos 90% da variância
+k_svd_pima <- which(cumulative_variance_svd_pima >= 0.9)[1]
+k_svd_lisbon <- which(cumulative_variance_svd_lisbon >= 0.9)[1]
 
-# Dimensionality reduction using SVD results
-pima_reduced_svd <- pima_encoded %*% pima_svd$v[, 1:pima_m]
-lisbon_reduced_svd <- lisbon_encoded %*% lisbon_svd$v[, 1:lisbon_m]
+# Retenha o número selecionado de componentes
+selected_svd_pcs_pima <- pima_svd$u[, 1:k_svd_pima] %*% diag(pima_svd$d[1:k_svd_pima])
+selected_svd_pcs_lisbon <- lisbon_svd$u[, 1:k_svd_lisbon] %*% diag(lisbon_svd$d[1:k_svd_lisbon])
 
-cat("Number of features in reduced Pima dataset (SVD):", ncol(pima_reduced_svd), "\n")
-cat("Number of features in reduced Lisbon dataset (SVD):", ncol(lisbon_reduced_svd), "\n")
+# Mostrar os componentes selecionados no terminal
+ncol(selected_svd_pcs_pima)
+ncol(selected_svd_pcs_lisbon)
+

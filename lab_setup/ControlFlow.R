@@ -103,5 +103,7 @@ if (spark_connection_is_open(ss)) {
 #One example of unsupervised learning on Spark is K-means clustering
 
 #### Ex4 j ####
-#Spark's ML Pipelines provide a way to easily combine multiple transformations
-#and algorithms into a single workflow, or pipeline.
+#Spark can process Big data process pipelines because of a few factores, this being:
+#Speed and Scalability - Spark can process large datasets in parallel across multiple machines, which reduces the processing time for big data.
+#In-Memory Processing - Spark can store data in memory, which reduces the time to retrieve said data.
+#Flexibility - Spark supports various formats, and processing tasks, which makes it adaptable to complex pipelines.

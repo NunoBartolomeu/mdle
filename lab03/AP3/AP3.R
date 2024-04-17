@@ -6,7 +6,8 @@ library(data.table) #To be used when possible, as a more performant data.frame
 library(e1071)
 library(caret)
 
-setwd("C:/Users/pedro/Desktop/Mestrado/MDLE/lab/lab03/AP3")
+#Set the working directory where this file is 
+setwd("C:/Users/pedro/Desktop/mestradoLab/mdle/lab03/AP3")
 
 if(!exists("printConfusionMatrix", mode="function")) 
   source("helperfunctions.R")
@@ -36,35 +37,33 @@ names(df.l) <-c("CLASS") #rename dependent variable
 df.local<- cbind(df.l,df) #bind them together
 
 df <- copy_to(sc, df.local)
-
-################# G2 #######################
+################# G2 ######################################################
 #Glimpse of the data set
-#TODO
-sdf <- sdf_schema(df)
+sdf_schema(df)
 head(df)
 actual_rows <- nrow(spark_dataframe(df))
-actual_cols <- ncol(spark_dataframe(df))
-stopifnot(
-  actual_rows==546,
-  actual_cols==2190)
+actual_cols <- ncol(df)
 
-################# G3 #######################
+stopifnot(
+  actual_rows==2190,
+  actual_cols==546)
+
+################# G3 ########################################################
 #Feature Selection
 idx <- c(1,2,5,6,9,10,11,14,16,17,19,21,24,25,26,31,32,33,34,35,41,44,49,50,54)
 
-#TODO
-df.sel <- df %>% select(all_of(idx))
+df.sel <- df %>% select(!!!idx)
 head(df.sel)
 
 
-################# G4 #######################
+################# G4 #####################################################
 #Generating train and test data
 set.seed(123)
 df.split <- df %>% sdf_random_split(training = 2/3, testing = 1/3)
 df.train <- df.split$training 
 df.test <-  df.split$testing
 
-#TODO Baseline
+#Baseline
 # Collect the data from Spark DataFrame to local R environment
 train_data_local <- collect(df.train)
 test_data_local <- collect(df.test)
@@ -87,11 +86,13 @@ predictions <- ml_predict(random_forest_model, df.test)
 
 mdle.printConfusionMatrix(predictions, "Random Forest Baseline")
 
-################# G5 #######################
+################# G5 ########################################################
+#Select the number of instances for positive class
 num_pos_instances <- df.train %>%
   filter(CLASS == 1) %>%
   sdf_nrow() %>%
   as.integer()
+#Select the number of instances for positive class
 num_neg_instances <- df.train %>%
   filter(CLASS == 0) %>%
   sdf_nrow() %>%
@@ -101,11 +102,11 @@ min_instances <- min(num_pos_instances, num_neg_instances)
 # Undersample the positive and negative classes
 df.pos.train <- df.train %>%
   filter(CLASS == 1) %>%
-  sdf_sample(fraction = min_instances / num_pos_instances)
+  sdf_sample(fraction = min_instances / num_pos_instances, seed = 123)
 
 df.neg.train <- df.train %>%
   filter(CLASS == 0) %>%
-  sdf_sample(fraction = min_instances / num_neg_instances)
+  sdf_sample(fraction = min_instances / num_neg_instances, seed = 123)
 
 # Combine the undersampled dataframes
 df.train_balanced <- sdf_bind_rows(df.pos.train, df.neg.train)
@@ -194,12 +195,10 @@ labels <- df$CLASS
 
 # Apply BLSMOTE oversampling
 oversampled_data <- BLSMOTE(X = features, target = labels, method = "type1")
-class(oversampled_data)
+
 
 # Combine oversampled features and labels into a new data frame
 oversampled_df <- data.frame(oversampled_data$data)
-
-class(oversampled_df)
 
 spark_df <- sdf_copy_to(sc, oversampled_df)
 

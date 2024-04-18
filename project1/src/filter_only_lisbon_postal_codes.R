@@ -11,5 +11,6 @@ data <- subset(data, select = -c(Date, Hour))
 # Filter the 'Zip Code' column to contain only numbers between 1000 and 1990
 data <- subset(data, Zip.Code >= 1105 & Zip.Code <= 1512)
 
+data$Zip.Code <- as.integer(data$Zip.Code)
 # Write the filtered data to a new CSV file
 write.csv(data, file = "../mdle_data/consumos_horario_codigo_postal_lisboa.csv", row.names = FALSE)

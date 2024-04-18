@@ -9,8 +9,8 @@
 library(dplyr)
 
 # Load datasets
-pima_dataset <- read.csv("C:/Users/pedro/Desktop/Mestrado/MDLE/lab/lab02/pima.csv")
-lisbon_dataset <- read.csv("C:/Users/pedro/Desktop/Mestrado/MDLE/lab/lab02/Lisbon_ 2023-01-01_2023-01-31.csv")
+pima_dataset <- read.csv("C:/Users/pedro/Desktop/mestradoLab/mdle/lab02/pima.csv")
+lisbon_dataset <- read.csv("C:/Users/pedro/Desktop/mestradoLab/mdle/lab02/Lisbon_ 2023-01-01_2023-01-31.csv")
 
 # Compute variance and mean-median for each dataset
 variance_pima <- apply(pima_dataset, 2, var)

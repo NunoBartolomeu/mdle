@@ -1,5 +1,6 @@
 # Set the working directory to the 'src' directory
-setwd("D:/Cadeiras/MDLE/mdle/project1/src")
+#setwd("D:/Cadeiras/MDLE/mdle/project1/src")
+setwd("C:/Users/pedro/Desktop/mestradoLab/mdle/project1/src")
 
 # List of filenames
 filenames <- c(
@@ -29,55 +30,36 @@ for (filename in filenames) {
 }
 
 # Write merged data to a new CSV file
-write.csv(merged_data, file="../mdle_data/Weather/Lisbon_2022-12-01_2023-12-31_full.csv", row.names=FALSE)
+write.csv(merged_data, file="../mdle_data/Weather/Lisbon_2022-12-01_2023-12-31_full.csv", row.names = FALSE)
 
 ################################################################################
 
 # Read the merged data file
-merged_data <- read.csv("../mdle_data/Weather/Lisbon_2022-12-01_2023-12-31_full.csv", header=TRUE)
+merged_data <- read.csv("../mdle_data/Weather/Lisbon_2022-12-01_2023-12-31_full.csv")
 
-# Loop through each attribute
-for (attr in names(merged_data)) {
-  cat("\nAttribute:", attr, "\n")
-  
-  # Get unique values for the attribute
-  unique_values <- unique(merged_data[[attr]])
-  cat("Number of Unique Values:", length(unique_values), "\n")
-  
-  # Print the most frequent values and their percentages
-  cat("Most frequent Values:\n")
-  value_counts <- sort(table(merged_data[[attr]]), decreasing = TRUE)
-  for (value in names(value_counts)) {
-    percentage <- (value_counts[value] / sum(!is.na(merged_data[[attr]]))) * 100
-    if (!is.na(percentage) && percentage > 2) {
-      cat("\t", value, ":", round(percentage, 2), "%\n")
-    }
-  }
-}
+# 
+variance_lisbon <- apply(merged_data, 2, function(x) var(x, na.rm = TRUE))
+
+# Combine relevance measures for each dataset
+relevance_lisbon <- data.frame(features = colnames(merged_data), variance = variance_lisbon)
+
+print("Lisbon Dataset:")
+print(relevance_lisbon)
 
 ################################################################################
 
-# Columns to be removed
-columns_to_remove <- c(
-  "name", 
-  "precipprob", 
-  "preciptype", 
-  "snow", 
-  "snowdepth",
-  "uvindex", 
-  "severerisk", 
-  "icon",
-  
-  "feelslike",
-  "visibility",
-  "precip"
-  )
+# Remove columns with 0 variance
+valid_indices <- which(relevance_lisbon$variance > 0 | relevance_lisbon$features == "datetime")
 
 # Remove the specified columns
-filtered_data <- merged_data[, !(names(merged_data) %in% columns_to_remove)]
+filtered_merged_data <- merged_data[, valid_indices]
+
+
+print("Lisbon Dataset (filtered):")
+print(filtered_merged_data)
 
 # Write the filtered data to a new CSV file
-write.csv(filtered_data, file="../mdle_data/Weather/Lisbon_2022-12-01_2023-12-31_filtered.csv", row.names=FALSE)
+write.csv(filtered_merged_data, file="../mdle_data/Weather/Lisbon_2022-12-01_2023-12-31_filtered.csv", row.names=FALSE)
 
 
 

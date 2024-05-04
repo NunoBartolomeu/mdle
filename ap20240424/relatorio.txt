@@ -1,0 +1,57 @@
+20 a 35 - Criação da user function "resumetable", esta função produz informações sobre o conjunto de dados, como o tipo de dados, valores ausentes e únicos...
+
+37 a 71 - Criação da função "CalcOutliers" que como diz o nome faz calcula os valores que são outliers tanto os superiores como os inferiores.
+
+Depois de correr estas funções é possível identifica-las nas variáveis globais
+
+## 1. A simple histogram can be a great first step in understanding a data set.
+
+86 - Os resultados obtidos são os esperados, conseguimos ver o nome das colunas do dataset, o seu tipo e os valores em falta e únicos.
+O dataset em si parece ser sobre reviews de vinhos. Vemos o pais de origem, a descrição do sabor, o preço...
+
+110 - Os resultados não tem o formato do esperado. mas é possivel ver os valores estatisticos sobre  tabela. Que contem o número de instâncias, a mediana, os mínimos e os máximos...
+
+# 2. Points Distribution
+
+141 - Esta função guarda o plot no formato pdf. Ao abrir o pdf podemos ver o gráfico onde o eixo dos Y é o Count é o eixo dos X é o Points. Os pontos estão entre 80 e 100 mas vemos claramente que o resultado mais comum é 88 seguido de 87. (Escrever mais secalhar)
+
+# 3. Detecting Outlier Points
+
+186 - Ao correr o código posterior foi criado um plot com a distribuição das categorias, onde os valores são:
+0 -  2.3%
+1 - 24.3%
+2 - 35.7%
+3 - 33.0%
+4 -  4.7%
+5 -  0.1%
+Como podemos ver a maioria dos valores está entre 1 e 3 e isso causa os resultados dos outliers. Não existem outliers inferiores e existem apenas 129 outliers superiores, como o total é 129k nos podemos concluir que apenas a categoria com o valor 5 foi considerada como outlier.
+
+211 - Ao ver os outliers encontramos 100% de outliers nos preços. (Não percebi porque)
+
+226 - Os valores não coincidem com os valores esperados.
+
+249 - A maioria dos preços está entre 5 e 35.
+
+# 4. Crossing prices and Points
+
+265 - O vinho mais caro custa 3300, é Frances e recebeu uma nota de 88 pontos, os vinhos com mais pontos estão num range elevado de preços entre 80 e 1500. 
+(Não percebo a pergunta)
+
+335 - Com os resultados podemos ver que a maioria das avaliações são dos Estados Unidos, seguido de França e Italia, seguidos de Espanha e Portugal. A grande maioria ser dos estados unidos dá para acreditar que o dataset foi marioritariamente feito por americanos. Online França, Portugal e Espanha foram identificados como os maiores consumidores de vinho e França, Itália e Espanha estão no top 10 de destinos para americanos, isto dá uma explicação para as contagens.
+A nível de preço os paises são semelhantes mas podemos identificar a Romania e, em parte, a Bulgaria como os paises com os vinhos mais baratos, devido as dificuldades economicas do pais estes valores fazem sentido. Podemos também ver que França tem o maior número de outliers e os preços mais altos, devido a cultura do pais estes valores também foram esperados.
+A nível de pontos todos os paises estão relativamente equilibrados, excepto a Romania que está abaixo dos outros. Se pensarmos nos dados vistos previamente, nos conseguimos identificar que em geral os vinhos mais caros recebem notas mais altas e como a Romania tem vinhos baratos então era esperado que tivessem pontuações mais baixas.
+
+
+# ------------------ (1) Taster Feature ------------------
+
+342 - Ver por provincia dá uma história similar, California é a provincia com o maior número de entradas, vendo online, a California e Manhatan são os estados que consomem mais vinho per capita, mas a California é muito mais populosa do que os outro estados que consumem vinho regularmente.
+
+O preço também varia da mesma forma, sendo claro que está relacionado com o custo de vida em geral. Bordeaux é a provincia com mais outliers tal como na visão anterior era França. Os pontos são ainda mais consistentes do que na ultima visão.
+
+Por provador, vemos que uma grande parte não está disponível (NA) e em comparação com os utilizadores mais ativos tende a comprar vinhos mais caros, e as avaliações estão na média com as outras. Notoriamente o utilizador "Roger Voss" é o mais ativo, e também é o que experimenta um maior range de preços que é representado pela grande variação nos valores.
+
+Por variadade é uma situação semelhante, a contagem não é dominada por apenas uma variadade como foi nos outros exemplos, Pinot Noir, Chardonnay, Cabernet Sauvigon, Deaux-Style Red Blend and Red Blend are the most common ones. Em geral Roset é o que obtem menos pontos mas também é o mais barato que é condiz com as outras conclusões. 
+
+Da vinharia, é o que tem a maior distribuição, e vemos novamente que os vinhos mais baratos recebem notas piores.
+
+

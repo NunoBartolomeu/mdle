@@ -8,14 +8,13 @@ current_path = rstudioapi::getActiveDocumentContext()$path
 setwd(dirname(current_path ))
 
 consumo_horario <- read.csv("../mdle_data/consumos_horario_codigo_postal.csv", sep = ";")
-census <- read.csv("../mdle_data/INE/Census/Census_final_data.csv", sep = ",")
 
-census <- census %>% rename(Zip.Code = 'postal_code')
+data <- consumo_horario %>% select(-Date.Time)
 
-# Combinar os data frames usando merge()
-merged_df <- merge(census, consumo_horario, by = "Zip.Code")
+df <- data %>%
+  mutate(datetime = paste(Date, "T", Hour, ":00", sep = ""))
 
-write.csv(merged_df, file="../mdle_data/consumo_codigo_postal.csv")
+df <- df %>%
+  select(datetime, Date, Hour, Zip.Code, Active.Energy..kWh.)
 
-
-
+write.csv(df, file="../mdle_data/out/filtered_consumption_Lisbon.csv", row.names = FALSE)

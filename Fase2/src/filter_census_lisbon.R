@@ -49,6 +49,7 @@ bgri2021_data$postal_code <- mapply(get_postal_code_nominatim, bgri2021_data$lon
 #Armazena os dados bgri2021 com a nova coluna com os códigos postais num CSV
 write.csv(bgri2021_data, file="../mdle_data/INE/BGRI2021_1106-LX/BGRI2021_with_postalCodes.csv")
 
+bgri2021_data <- read.csv("../mdle_data/INE/BGRI2021_1106-LX/BGRI2021_with_postalCodes.csv", sep = ",")
 #Retira as colunas desnecessárias
 census_data <- subset(bgri2021_data, select = -c(longitude, latitude, SHAPE_Length, SHAPE_Area, NUTS3, NUTS2, NUTS1, 
                                                  SUBSECCAO, SECSSNUM21, SSNUM21, SECNUM21, DTMNFRSEC21, DTMNFR21, 
@@ -65,8 +66,30 @@ aggregated_data <- census_data %>%
 
 aggregated_data <- aggregated_data %>% slice(-n())
 
+postal_code <- aggregated_data %>% select(postal_code)
+
+
+#Seleção de atributos por variância
+variance <- apply(aggregated_data, 2, function(x) var(x, na.rm = TRUE))
+
+# Combine relevance measures for each dataset
+relevance <- data.frame(features = colnames(aggregated_data), variance = variance)
+
+print("Census Dataset:")
+print(relevance)
+
+# Remove columns with 0 variance
+valid_indices <- which(relevance$variance > 0)
+
+filtered_data <- aggregated_data[, valid_indices]
+
+print("Census Dataset (filtered):")
+print(filtered_data)
+
+census <- filtered_data %>% rename(Zip.Code = 'postal_code')
+census <- census %>% select(-c("X.1"))
 #Armazena os dados finais dos census com a filtragem dos códigos postais 
-write.csv(aggregated_data, file="../mdle_data/INE/Census/Census_final_data.csv")
+write.csv(census, file="../mdle_data/out/filtered_census.csv", row.names = FALSE)
 
 
 

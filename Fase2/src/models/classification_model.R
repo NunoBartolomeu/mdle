@@ -1,5 +1,3 @@
-install.packages("dplyr")
-install.packages("rpart")
 library(dplyr)
 library(rpart)
 library(sparklyr)
@@ -15,42 +13,42 @@ set.seed(123)
 current_path = rstudioapi::getActiveDocumentContext()$path
 setwd(dirname(current_path ))
 
-################# Spark setup ################
-spark_disconnect_all() #just preventive code
-sc <- spark_connect('local', version = '3.4.2', hadoop_version = '3', config = list())
-
 #########################AUXILIAR FUNCTIONS###################################################
+selecionar_amostragem <- function(df, target_column, train_ratio = 0.7) {
+  cat("Escolha a técnica de amostragem:\n")
+  cat("1: Amostragem Aleatória Simples\n")
+  cat("2: Amostragem Estratificada\n")
+  cat("3: Amostragem Sistemática\n")
+  choice <- as.integer(readLines(con = stdin(), n = 1))
+  
+  if(choice == 1) {
+    set.seed(123)
+    sample_index <- sample(1:nrow(df), size = train_ratio * nrow(df))
+    train <- df[sample_index, ]
+    test <- df[-sample_index, ]
+  } else if(choice == 2) {
+    set.seed(123)
+    train_index <- createDataPartition(df[[target_column]], p = train_ratio, list = FALSE)
+    train <- df[train_index, ]
+    test <- df[-train_index, ]
+  } else if(choice == 3) {
+    set.seed(123)
+    k <- 5
+    sample_index <- seq(1, nrow(df), by = k)
+    train <- df[sample_index, ]
+    test <- df[-sample_index, ]
+  }else {
+    stop("Opção inválida. Tente novamente.")
+  }
+  
+  return(list(train = train, test = test))
+}
+
 normalize <- function(x) {
   return ((x - min(x)) / (max(x) - min(x)))
 }
 ##############################################################################################
-
 df <- read.csv("../../mdle_data/out/merged_dataset.csv")
-
-
-#Use with Spark
-#df_spark <- copy_to(sc, df, overwrite = TRUE)
-
-#mean_energy <- df_spark %>% 
- # summarise(mean_energy = mean(Active_Energy_kWh_, na.rm = TRUE)) %>% 
-  #collect() %>% 
-  #.$mean_energy
-
-#df_spark <- df_spark %>%
- # mutate(Label = ifelse(Active_Energy_kWh_ > mean_energy, "High", "Low"))
-
-# Colect the DataFrame back to R
-#df_collected <- df_spark %>% collect()
-
-# Transform the column into a factor
-#df_collected$Label <- as.factor(df_collected$Label)
-
-
-
-
-
-
-#Use without Spark
 
 #Calculate the mean of column Active.Energy..kWh.
 mean_energy <- mean(df$Active.Energy..kWh., na.rm = TRUE)
@@ -64,42 +62,15 @@ df$Active.Energy.Class <- as.factor(df$Active.Energy.Class)
 #Remove column Active.Energy..kWh.
 df <- df %>% select(-c(Active.Energy..kWh.))
 ################Random Forrest###############################################################
-#With Spark
-#df_collected <- df_collected %>% na.omit()
-
-#Prepare the data
-#df_spark <- df_spark %>% sdf_random_split(training = 0.65, test = 0.35, seed = 1234)
-#df_train <- df_spark$training
-#df_test <- df_spark$test
-
-
-# Trains the Random Forest
-#rf_model <- df_train %>%
- # ml_random_forest(Label ~ ., type = "classification", num_trees = 10)
-
-#Make predictions
-#predictions <- ml_predict(rf_model, df_test)
-
-
-
-
-
-
-
-#Without Spark
 df <- na.omit(df)
 
-#train_index <- sample(1:nrow(df), size = 0.7 * nrow(df))
-train_index <- sample(2, nrow(df), replace = TRUE, prob = c(0.7,0.3))
+resultados <- selecionar_amostragem(df, target_column = "Active.Energy..kWh.")
 
-df_train <- df[train_index==1, ]
-df_test <- df[train_index==2, ]
-
-# Remover linhas com valores ausentes
-#df_train_clean <- na.omit(df_train)
+df_train <- resultados$train
+df_test <- resultados$test
 
 # Train Random Forest model
-rf_model <- randomForest(Active.Energy.Class ~ ., data = df_train)
+rf_model <- randomForest(Active.Energy.Class ~ ., data = df_train, ntree = 200, maxnodes = 40)
 
 predictions <- predict(rf_model, newdata = df_test)
 probabilities <- predict(rf_model, newdata = df_test, type = "prob")
@@ -125,19 +96,16 @@ numeric_cols <- sapply(df, is.numeric)
 
 #Don't normalize
 numeric_cols["Active.Energy.Class"] <- FALSE
-#numeric_cols["Active.Energy.Class"] <- FALSE
+
 
 #Normalize the numeric columns
 df[numeric_cols] <- as.data.frame(lapply(df[numeric_cols], normalize))
 
-#train_index <- sample(1:nrow(df), size = 0.7 * nrow(df))
-#df_train <- df[train_index, ]
-#df_test <- df[-train_index, ]
+resultados <- selecionar_amostragem(df, target_column = "Active.Energy..kWh.")
 
-train_index <- sample(2, nrow(df), replace = TRUE, prob = c(0.7,0.3))
+df_train <- resultados$train
+df_test <- resultados$test
 
-df_train <- df[train_index==1, ]
-df_test <- df[train_index==2, ]
 
 # Separate features and labels
 features <- names(df)[!names(df) %in% c("Active.Energy.Class")]
@@ -147,11 +115,6 @@ train_labels <- df_train$Active.Energy.Class
 test_features <- df_test[, features]
 test_labels <- df_test$Active.Energy.Class
 
-# Verificar valores ausentes nos dados de treino
-anyNA(train_features)
-anyNA(test_features)
-anyNA(train_labels)
-anyNA(test_labels)
 
 
 #Define number of neighbours
@@ -170,9 +133,10 @@ print(confusion_matrix)
 df <- na.omit(df)
 df <- subset(df, select = -c(datetime, Date, Hour))
 
-train_index <- sample(1:nrow(df), size = 0.7 * nrow(df))
-df_train <- df[train_index, ]
-df_test <- df[-train_index, ]
+resultados <- selecionar_amostragem(df, target_column = "Active.Energy..kWh.")
+
+df_train <- resultados$train
+df_test <- resultados$test
 
 # Separate features and labels
 features <- df %>% names()

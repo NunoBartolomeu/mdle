@@ -13,12 +13,11 @@ current_path = rstudioapi::getActiveDocumentContext()$path
 setwd(dirname(current_path ))
 
 ######################Auxiliar Function###############################
-selecionar_amostragem_1 <- function(df, target_column, train_ratio = 0.7, num_folds = 5) {
+selecionar_amostragem <- function(df, target_column, train_ratio = 0.7) {
   cat("Escolha a técnica de amostragem:\n")
   cat("1: Amostragem Aleatória Simples\n")
   cat("2: Amostragem Estratificada\n")
   cat("3: Amostragem Sistemática\n")
-  cat("4: Oversampling\n")
   choice <- as.integer(readLines(con = stdin(), n = 1))
   
   if(choice == 1) {
@@ -37,24 +36,6 @@ selecionar_amostragem_1 <- function(df, target_column, train_ratio = 0.7, num_fo
     sample_index <- seq(1, nrow(df), by = k)
     train <- df[sample_index, ]
     test <- df[-sample_index, ]
-  } else if(choice == 4) {
-    set.seed(123)
-    df <- subset(df, select = -c(datetime, Date, Hour))
-    train_index <- sample(1:nrow(df), size = train_ratio * nrow(df))
-    
-    train <- df[train_index, ]
-    
-    features <- train %>% select(-c(target_column))
-    str(features)
-    
-    target <- train %>% select(c(target_column))
-    cat("TARGET")
-    str(target)
-    
-    # Aplying BLSMOTE 
-    train <- BLSMOTE(X = features, target = target, method = "type1")
-    
-    test <- df[-train_index, ]
   }else {
     stop("Opção inválida. Tente novamente.")
   }
@@ -108,36 +89,21 @@ ggplot(data = data.frame(predictions, actuals = df_test$Active.Energy..kWh.), ae
 df <- subset(df, select = -c(datetime, Date, Hour))
 resultados <- selecionar_amostragem(df, target_column = "Active.Energy..kWh.")
 
-# Split the dataset
-train_index <- sample(2, nrow(df), replace = TRUE, prob = c(0.7, 0.3))
-df_train <- df[train_index == 1, ]
-df_test <- df[train_index == 2, ]
-
-# Remove the column before PCA
-train_features <- df_train %>% select(-Active.Energy..kWh.)
-test_features <- df_test %>% select(-Active.Energy..kWh.)
-
-# Apply the PCA
-preProc <- preProcess(train_features, method = "pca", thresh = 0.95)
-train_pca <- predict(preProc, train_features)
-test_pca <- predict(preProc, test_features)
-
-# Bind the new data with the target column
-train_pca <- cbind(train_pca, Active.Energy..kWh. = df_train$Active.Energy..kWh.)
-test_pca <- cbind(test_pca, Active.Energy..kWh. = df_test$Active.Energy..kWh.)
+df_train <- resultados$train
+df_test <- resultados$test
 
 # Defines the number of neighbours
 k <- 3
 
 # Normalize the data
-train_pca_norm <- scale(train_pca)
-test_pca_norm <- scale(test_pca)
+train_norm <- scale(df_train)
+test_norm <- scale(df_test)
 
 # Separate features and target
-train_features_norm <- train_pca_norm[, -ncol(train_pca_norm)]
-train_target <- train_pca$Active.Energy..kWh.
-test_features_norm <- test_pca_norm[, -ncol(test_pca_norm)]
-test_target <- test_pca$Active.Energy..kWh.
+train_features_norm <- train_norm[, -ncol(train_norm)]
+train_target <- df_train$Active.Energy..kWh.
+test_features_norm <- test_norm[, -ncol(test_norm)]
+test_target <- df_test$Active.Energy..kWh.
 
 # Train the model
 predictions_knn <- knn(train = train_features_norm, test = test_features_norm, cl = train_target, k = k)
@@ -157,3 +123,4 @@ r2_knn <- 1 - (sum(residuals_knn^2) / sum((test_target - mean(test_target))^2))
 cat("Mean Absolute Error (MAE):", mae_knn, "\n")
 cat("Mean Squared Error (MSE):", mse_knn, "\n")
 cat("R-squared (R²):", r2_knn, "\n")
+

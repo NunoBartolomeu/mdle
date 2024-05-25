@@ -61,6 +61,8 @@ df$Active.Energy.Class <- ifelse(df$Active.Energy..kWh. > mean_energy, "High", "
 #Transforms the new column to factor
 df$Active.Energy.Class <- as.factor(df$Active.Energy.Class)
 
+#Remove column Active.Energy..kWh.
+df <- df %>% select(-c(Active.Energy..kWh.))
 ################Random Forrest###############################################################
 #With Spark
 #df_collected <- df_collected %>% na.omit()
@@ -106,9 +108,13 @@ confusion_matrix <- confusionMatrix(predictions, df_test$Active.Energy.Class)
 print(confusion_matrix)
 
 #Calcules the ROC curve
-roc_curve <- roc(df_test$Active.Energy.Class, probabilities[, 2])
+roc_curve <- roc(df_test$Active.Energy..kWh., probabilities[, 2])
 plot(roc_curve, col = "blue", main = "Curva ROC para o Modelo Random Forest")
 abline(a = 0, b = 1, lty = 2, col = "red")
+
+#roc_curve <- roc(df_test$Active.Energy.Class, probabilities[, 2])
+#plot(roc_curve, col = "blue", main = "Curva ROC para o Modelo Random Forest")
+#abline(a = 0, b = 1, lty = 2, col = "red")
 
 #################K-Nearest Neighbors - KNN#########################################################################
 #Showing good values
@@ -117,9 +123,11 @@ df <- na.omit(df)
 df <- subset(df, select = -c(datetime, Date, Hour))
 numeric_cols <- sapply(df, is.numeric)
 
-#Don't normalize 
+#Don't normalize
 numeric_cols["Active.Energy.Class"] <- FALSE
-numeric_cols["Zip.Code"] <- FALSE
+#numeric_cols["Active.Energy.Class"] <- FALSE
+
+#Normalize the numeric columns
 df[numeric_cols] <- as.data.frame(lapply(df[numeric_cols], normalize))
 
 #train_index <- sample(1:nrow(df), size = 0.7 * nrow(df))
@@ -151,15 +159,12 @@ k <- 3
 
 #Train the model
 predictions <- knn(train = train_features, test = test_features, cl = train_labels, k = k)
+
+#Confusion Matrix
 confusion_matrix <- confusionMatrix(predictions, test_labels)
 print(confusion_matrix)
 
-probabilities <- predict(rf_model, newdata = df_test, type = "prob")
 
-#Calcules the ROC curve
-roc_curve <- roc(df_test$Active.Energy.Class, probabilities[, 2])
-plot(roc_curve, col = "blue", main = "Curva ROC para o Modelo Random Forest")
-abline(a = 0, b = 1, lty = 2, col = "red")
 #############################################################################################
 ################SMV##########################################################################
 df <- na.omit(df)
@@ -170,6 +175,9 @@ df_train <- df[train_index, ]
 df_test <- df[-train_index, ]
 
 # Separate features and labels
+features <- df %>% names()
+features <- features[features != "Active.Energy.Class"]
+
 train_features <- df_train[, features]
 train_labels <- df_train$Active.Energy.Class
 test_features <- df_test[, features]
